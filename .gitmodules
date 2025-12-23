@@ -1,0 +1,3 @@
+[submodule "rag2f"]
+	path = rag2f
+	url = https://github.com/rag2f/rag2f.git

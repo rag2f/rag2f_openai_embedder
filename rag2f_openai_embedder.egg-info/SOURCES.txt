@@ -1,0 +1,10 @@
+README.md
+pyproject.toml
+rag2f_openai_embedder.egg-info/PKG-INFO
+rag2f_openai_embedder.egg-info/SOURCES.txt
+rag2f_openai_embedder.egg-info/dependency_links.txt
+rag2f_openai_embedder.egg-info/entry_points.txt
+rag2f_openai_embedder.egg-info/requires.txt
+rag2f_openai_embedder.egg-info/top_level.txt
+test/test_bootstrap_hook.py
+test/test_embedder_unit.py
