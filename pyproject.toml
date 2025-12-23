@@ -51,3 +51,4 @@ norecursedirs = ["rag2f"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+addopts = "-s -vv -rA --color=yes --maxfail=3"

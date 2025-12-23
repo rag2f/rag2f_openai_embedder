@@ -20,6 +20,9 @@ class OpenAIEmbedder:
       - timeout: Request timeout (default: 30.0)
       - max_retries: Maximum number of retries (default: 2)
     
+    Optional configuration parameters:
+      - base_url: Base URL for the API endpoint (default: None, uses OpenAI's official API)
+    
     Configuration can be provided via:
     1. JSON file (specified in RAG2F initialization)
     2. Environment variables with prefix RAG2F__PLUGINS__<PLUGIN_ID>__
@@ -28,6 +31,7 @@ class OpenAIEmbedder:
       RAG2F__PLUGINS__OPENAI_EMBEDDER__API_KEY=sk-xxx
       RAG2F__PLUGINS__OPENAI_EMBEDDER__MODEL=text-embedding-3-small
       RAG2F__PLUGINS__OPENAI_EMBEDDER__SIZE=1536
+      RAG2F__PLUGINS__OPENAI_EMBEDDER__BASE_URL=http://localhost:8000/v1
     """
 
     def __init__(self, config: dict):
@@ -44,11 +48,10 @@ class OpenAIEmbedder:
         # Optional parameters with defaults
         self._timeout = config.get('timeout', 30.0)
         self._max_retries = config.get('max_retries', 2)
+        self._base_url = config.get('base_url')  # Optional: for custom endpoints like localhost
         
         # Validate required parameters
         missing = []
-        if not self._api_key:
-            missing.append('api_key')
         if not self._model:
             missing.append('model')
         if not self._size:
@@ -79,11 +82,16 @@ class OpenAIEmbedder:
             raise ValueError(f"Parameter 'max_retries' must be an integer, got: {self._max_retries}")
         
         # Initialize OpenAI client
-        self._client = OpenAI(
-            api_key=self._api_key,
-            timeout=self._timeout,
-            max_retries=self._max_retries,
-        )
+        client_kwargs = {
+            'timeout': self._timeout,
+            'max_retries': self._max_retries,
+        }
+        if self._base_url:
+            client_kwargs['base_url'] = self._base_url
+        if self._api_key:
+            client_kwargs['api_key'] = self._api_key
+        
+        self._client = OpenAI(**client_kwargs)
         
         logger.info(
             "OpenAIEmbedder initialized with model '%s'",
