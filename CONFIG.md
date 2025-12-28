@@ -1,13 +1,13 @@
 # OpenAI Embedder Configuration (Spock)
 
-Questo plugin ora legge la configurazione tramite il sistema centralizzato **Spock** di RAG2F.
-La configurazione del plugin deve essere inserita nel file di configurazione principale (o tramite environment variables) sotto il nodo `plugins.<plugin_id>`.
+This plugin now reads configuration through RAG2F's centralized **Spock** system.
+The plugin configuration must be placed in the main configuration file (or via environment variables) under the `plugins.<plugin_id>` node.
 
-Nota: le API in questo repository si aspettano che il plugin richiami la configurazione usando il `plugin_id` (es. `openai_embedder`) tramite `rag2f.spock.get_plugin_config(plugin_id)`.
+Note: the APIs in this repository expect the plugin to fetch configuration using the `plugin_id` (e.g. `openai_embedder`) via `rag2f.spock.get_plugin_config(plugin_id)`.
 
-## Dove mettere la configurazione
+## Where to Put the Configuration
 
-Nel file principale di configurazione (es. `config.json`) la sezione plugin deve avere questa struttura:
+In the main configuration file (e.g. `config.json`) the plugin section should have this structure:
 
 ```json
 {
@@ -23,13 +23,13 @@ Nel file principale di configurazione (es. `config.json`) la sezione plugin deve
 }
 ```
 
-In questo esempio il `plugin_id` è `openai_embedder` e Spock caricherà la configurazione quando il plugin la richiederà.
+In this example the `plugin_id` is `openai_embedder` and Spock will load the configuration when the plugin requests it.
 
-## Variabili d'ambiente (Spock)
+## Environment Variables (Spock)
 
-Spock supporta anche le variabili d'ambiente. Il formato è basato su prefissi con doppio underscore per rappresentare la gerarchia.
+Spock also supports environment variables. The format is based on prefixes with double underscores to represent the hierarchy.
 
-Esempi per impostare la configurazione del plugin via ENV:
+Examples for setting plugin configuration via ENV:
 
 ```bash
 export RAG2F__PLUGINS__OPENAI_EMBEDDER__API_KEY="sk-your-api-key"
@@ -39,42 +39,42 @@ export RAG2F__PLUGINS__OPENAI_EMBEDDER__TIMEOUT="30.0"
 export RAG2F__PLUGINS__OPENAI_EMBEDDER__MAX_RETRIES="2"
 ```
 
-Spock applicherà il parsing dei tipi (int, float, bool, JSON) quando possibile.
+Spock will parse types (int, float, bool, JSON) when possible.
 
-## Priorità delle sorgenti
+## Source Priority
 
-1. **Environment Variables** (massima priorità)
-2. **File JSON** (config.json passato a RAG2F)
-3. **Valori di default nel codice** (minima priorità)
+1. **Environment Variables** (highest priority)
+2. **JSON File** (`config.json` passed to RAG2F)
+3. **Default values in code** (lowest priority)
 
-## Esempio: come il plugin accede alla configurazione
+## Example: How the Plugin Accesses Configuration
 
-Nel codice il plugin ottiene la sua configurazione così:
+In code the plugin retrieves its configuration like this:
 
 ```python
 plugin_cfg = rag2f.spock.get_plugin_config("openai_embedder")
 ```
 
-Dopo aver ottenuto `plugin_cfg`, il plugin può validare i campi richiesti e lanciare un errore chiaro se mancano.
+After obtaining `plugin_cfg`, the plugin can validate required fields and raise a clear error if they are missing.
 
-## Parametri richiesti
+## Required Parameters
 
-- `api_key` (obbligatorio): Chiave API OpenAI
-- `model` (obbligatorio): Nome del modello di embedding (es. `"text-embedding-3-small"`, `"text-embedding-3-large"`, `"text-embedding-ada-002"`)
-- `size` (obbligatorio): Dimensione del vettore di embedding (1536 per text-embedding-3-small, 3072 per text-embedding-3-large, 1536 per ada-002)
-- `timeout` (opzionale): Timeout in secondi (default: 30.0)
-- `max_retries` (opzionale): Numero massimo di retry (default: 2)
+- `api_key` (required): OpenAI API key
+- `model` (required): Embedding model name (e.g. `"text-embedding-3-small"`, `"text-embedding-3-large"`, `"text-embedding-ada-002"`)
+- `size` (required): Embedding vector dimension (1536 for text-embedding-3-small, 3072 for text-embedding-3-large, 1536 for ada-002)
+- `timeout` (optional): Timeout in seconds (default: 30.0)
+- `max_retries` (optional): Maximum number of retries (default: 2)
 
-## Modelli OpenAI disponibili
+## Available OpenAI Models
 
-- `text-embedding-3-small`: 1536 dimensioni (più economico e veloce)
-- `text-embedding-3-large`: 3072 dimensioni (migliore qualità)
-- `text-embedding-ada-002`: 1536 dimensioni (modello legacy)
+- `text-embedding-3-small`: 1536 dimensions (more economical and faster)
+- `text-embedding-3-large`: 3072 dimensions (better quality)
+- `text-embedding-ada-002`: 1536 dimensions (legacy model)
 
-## Differenze con Azure OpenAI
+## Differences from Azure OpenAI
 
-A differenza di Azure OpenAI, il plugin OpenAI standard:
-- **Non richiede** `azure_endpoint` (usa l'endpoint pubblico OpenAI)
-- **Non richiede** `api_version` (usa automaticamente l'ultima versione)
-- **Non richiede** `deployment` (usa direttamente il nome del modello)
-- Usa il parametro `model` invece di `deployment`
+Unlike Azure OpenAI, the standard OpenAI plugin:
+- **Does not require** `azure_endpoint` (uses the OpenAI public endpoint)
+- **Does not require** `api_version` (automatically uses the latest version)
+- **Does not require** `deployment` (directly uses the model name)
+- Uses the `model` parameter instead of `deployment`
