@@ -39,11 +39,13 @@ Repository = "https://github.com/rag2f/rag2f"
 rag2f_openai_embedder = "rag2f_openai_embedder:get_plugin_path"
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["rag2f_openai_embedder*"]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+rag2f_openai_embedder = "src"
 
 [tool.setuptools.package-data]
-rag2f_openai_embedder = ["*.json", "*.json.example", "src/**/*.py"]
+rag2f_openai_embedder = ["*.json", "*.json.example"]
 
 [tool.pytest.ini_options]
 testpaths = ["test"]
