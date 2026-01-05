@@ -208,17 +208,17 @@ jobs:
           
           # Test import and version
           python -c "
-import rag2f_openai_embedder
-print(f'✅ Successfully imported rag2f_openai_embedder')
+          import rag2f_openai_embedder
+          print(f'✅ Successfully imported rag2f_openai_embedder')
 
-try:
-    from rag2f_openai_embedder._version import __version__, __commit__, __distance__
-    print(f'Version: {__version__}')
-    print(f'Commit: {__commit__}')
-    print(f'Distance: {__distance__}')
-except ImportError as e:
-    print(f'⚠️  Could not import version info: {e}')
-"
+          try:
+              from rag2f_openai_embedder._version import __version__, __commit__, __distance__
+              print(f'Version: {__version__}')
+              print(f'Commit: {__commit__}')
+              print(f'Distance: {__distance__}')
+          except ImportError as e:
+              print(f'⚠️  Could not import version info: {e}')
+          "
           
           deactivate
           echo "::endgroup::"

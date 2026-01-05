@@ -12,8 +12,22 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    
     steps:
+      - name: Check tag commit is on main
+        run: |
+          echo "::group::Checking if tag commit is on main"
+          TAG_COMMIT=$(git rev-parse "$GITHUB_SHA")
+          # Fetch main branch
+          git fetch origin main:refs/remotes/origin/main --depth=100
+          # Check if the tag commit is contained in main
+          if git merge-base --is-ancestor "$TAG_COMMIT" origin/main; then
+            echo "✅ Tag commit $TAG_COMMIT is on main"
+          else
+            echo "❌ ERROR: Il tag non punta a un commit presente su main. Release bloccata."
+            exit 1
+          fi
+          echo "::endgroup::"
+    
       - name: Checkout repository with full history
         uses: actions/checkout@v4
         with:
@@ -226,25 +240,25 @@ jobs:
           
           # Verify installation
           python -c "
-import rag2f_openai_embedder
-print(f'✅ Successfully imported rag2f_openai_embedder')
+          import rag2f_openai_embedder
+          print(f'✅ Successfully imported rag2f_openai_embedder')
 
-try:
-    from rag2f_openai_embedder._version import __version__, __commit__, __distance__
-    print(f'Version: {__version__}')
-    print(f'Commit: {__commit__}')
-    print(f'Distance: {__distance__}')
-    
-    # Verify version matches tag
-    expected = '${{ steps.version.outputs.version }}'
-    if __version__ != expected:
-        print(f'❌ Version mismatch! Expected {expected}, got {__version__}')
-        exit(1)
-    print(f'✅ Version matches tag')
-except ImportError as e:
-    print(f'❌ Could not import version info: {e}')
-    exit(1)
-"
+          try:
+              from rag2f_openai_embedder._version import __version__, __commit__, __distance__
+              print(f'Version: {__version__}')
+              print(f'Commit: {__commit__}')
+              print(f'Distance: {__distance__}')
+              
+              # Verify version matches tag
+              expected = '${{ steps.version.outputs.version }}'
+              if __version__ != expected:
+                  print(f'❌ Version mismatch! Expected {expected}, got {__version__}')
+                  exit(1)
+              print(f'✅ Version matches tag')
+          except ImportError as e:
+              print(f'❌ Could not import version info: {e}')
+              exit(1)
+          "
           
           deactivate
           echo "::endgroup::"
