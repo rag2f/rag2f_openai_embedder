@@ -1,0 +1,224 @@
+name: CI Dev - TestPyPI
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
+
+permissions:
+  contents: read
+  id-token: write  # For OIDC trusted publishing
+
+jobs:
+  validate-and-publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository with full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required for setuptools-scm to read tags
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install build setuptools-scm[toml]>=8.0
+      
+      - name: Validate src/ structure
+        run: |
+          echo "::group::Validating src/ directory structure"
+          
+          # Check src/ exists
+          if [ ! -d "src" ]; then
+            echo "❌ ERROR: /src directory not found!"
+            exit 1
+          fi
+          echo "✅ /src directory exists"
+          
+          # Check for at least one package in src/
+          package_found=false
+          for dir in src/*/; do
+            if [ -d "$dir" ] && [ -f "${dir}__init__.py" ]; then
+              package_found=true
+              package_name=$(basename "$dir")
+              echo "✅ Found package: $package_name"
+            fi
+          done
+          
+          # Also check if src itself is a package
+          if [ -f "src/__init__.py" ]; then
+            package_found=true
+            echo "✅ src/ is also a package (has __init__.py)"
+          fi
+          
+          if [ "$package_found" = false ]; then
+            echo "❌ ERROR: No importable package found in /src (no directories with __init__.py)"
+            exit 1
+          fi
+          
+          echo "::endgroup::"
+      
+      - name: Validate __init__.py presence
+        run: |
+          echo "::group::Validating __init__.py in all packages"
+          
+          # Find all Python package directories (directories containing .py files)
+          # and verify they have __init__.py
+          missing_init=()
+          
+          while IFS= read -r -d '' dir; do
+            if [ ! -f "$dir/__init__.py" ]; then
+              missing_init+=("$dir")
+            else
+              echo "✅ $dir has __init__.py"
+            fi
+          done < <(find src -type d -exec sh -c '[ -n "$(find "$1" -maxdepth 1 -name "*.py" -print -quit)" ]' _ {} \; -print0)
+          
+          if [ ${#missing_init[@]} -gt 0 ]; then
+            echo "❌ ERROR: The following package directories are missing __init__.py:"
+            printf '  - %s\n' "${missing_init[@]}"
+            exit 1
+          fi
+          
+          echo "::endgroup::"
+      
+      - name: Validate pyproject.toml configuration
+        run: |
+          echo "::group::Validating pyproject.toml"
+          
+          # Check for dynamic version
+          if ! grep -q 'dynamic.*=.*\[.*"version".*\]' pyproject.toml; then
+            echo "❌ ERROR: pyproject.toml must have dynamic = [\"version\"]"
+            exit 1
+          fi
+          echo "✅ dynamic version configured"
+          
+          # Check for setuptools-scm in build-system
+          if ! grep -q 'setuptools-scm' pyproject.toml; then
+            echo "❌ ERROR: setuptools-scm not found in build-system.requires"
+            exit 1
+          fi
+          echo "✅ setuptools-scm in build-system.requires"
+          
+          # Check for local_scheme no-local-version
+          if ! grep -q 'local_scheme.*=.*"no-local-version"' pyproject.toml; then
+            echo "❌ ERROR: must set local_scheme = \"no-local-version\" in [tool.setuptools_scm]"
+            exit 1
+          fi
+          echo "✅ local_scheme = no-local-version configured"
+          
+          # Check for src layout
+          if ! grep -q 'where.*=.*\[.*"src".*\]' pyproject.toml; then
+            echo "❌ ERROR: must configure packages.find with where = [\"src\"]"
+            exit 1
+          fi
+          echo "✅ src layout configured"
+          
+          echo "::endgroup::"
+      
+      - name: Calculate DEV version
+        id: dev_version
+        run: |
+          echo "::group::Calculating DEV version"
+          
+          # Read base version from NEXT_VERSION file
+          if [ ! -f "NEXT_VERSION" ]; then
+            echo "❌ ERROR: NEXT_VERSION file not found!"
+            exit 1
+          fi
+          
+          BASE_VERSION=$(cat NEXT_VERSION | tr -d '[:space:]')
+          echo "Base version: $BASE_VERSION"
+          
+          # Calculate dev version
+          DEV_VERSION="${BASE_VERSION}.dev${{ github.run_number }}"
+          echo "Dev version: $DEV_VERSION"
+          
+          # Export for next steps
+          echo "version=$DEV_VERSION" >> $GITHUB_OUTPUT
+          
+          # Normalize package name for SETUPTOOLS_SCM_PRETEND_VERSION_FOR_*
+          # PEP 503 normalization: uppercase and replace . _ - with underscore
+          PACKAGE_NAME="rag2f-openai-embedder"
+          NORMALIZED_NAME=$(echo "$PACKAGE_NAME" | tr '[:lower:]' '[:upper:]' | tr '.-' '_')
+          echo "Normalized name: $NORMALIZED_NAME"
+          
+          # Export pretend version env var
+          ENV_VAR_NAME="SETUPTOOLS_SCM_PRETEND_VERSION_FOR_${NORMALIZED_NAME}"
+          echo "$ENV_VAR_NAME=$DEV_VERSION" >> $GITHUB_ENV
+          echo "Set $ENV_VAR_NAME=$DEV_VERSION"
+          
+          echo "::endgroup::"
+      
+      - name: Build package
+        run: |
+          echo "Building version: ${{ steps.dev_version.outputs.version }}"
+          python -m build
+      
+      - name: Verify build contents
+        run: |
+          echo "::group::Verifying build artifacts"
+          
+          # List dist contents
+          ls -lh dist/
+          
+          # Check wheel contents
+          pip install wheel
+          for whl in dist/*.whl; do
+            echo "Contents of $whl:"
+            unzip -l "$whl" | grep -v "/$" || true
+          done
+          
+          echo "::endgroup::"
+      
+      - name: Publish to TestPyPI
+        # Only publish on push to dev, not on PRs
+        if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          password: ${{ secrets.TESTPYPI_API_TOKEN }}
+          skip-existing: true
+      
+      - name: Smoke test - Install and verify
+        if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+        run: |
+          echo "::group::Smoke test - installing from TestPyPI"
+          
+          # Wait a bit for TestPyPI to process the upload
+          sleep 30
+          
+          # Create a fresh venv for testing
+          python -m venv test-env
+          source test-env/bin/activate
+          
+          # Install from TestPyPI
+          DEV_VERSION="${{ steps.dev_version.outputs.version }}"
+          pip install --index-url https://test.pypi.org/simple/ \
+                      --extra-index-url https://pypi.org/simple/ \
+                      rag2f-openai-embedder==$DEV_VERSION
+          
+          # Test import and version
+          python -c "
+import rag2f_openai_embedder
+print(f'✅ Successfully imported rag2f_openai_embedder')
+
+try:
+    from rag2f_openai_embedder._version import __version__, __commit__, __distance__
+    print(f'Version: {__version__}')
+    print(f'Commit: {__commit__}')
+    print(f'Distance: {__distance__}')
+except ImportError as e:
+    print(f'⚠️  Could not import version info: {e}')
+"
+          
+          deactivate
+          echo "::endgroup::"

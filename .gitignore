@@ -136,3 +136,6 @@ Thumbs.db
 # Project specific
 config.json
 local_*
+
+# setuptools-scm generated version file
+src/rag2f_openai_embedder/_version.py

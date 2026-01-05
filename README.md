@@ -121,3 +121,86 @@ Il plugin include validazione completa:
 - ✅ Gestione errori
 - ✅ Diversi modelli OpenAI
 - ✅ Bootstrap hook
+
+## Release Management
+
+This project uses automated releases with semantic versioning and setuptools-scm.
+
+### Version Schema (PEP 440)
+
+- **Development builds** (branch `dev`): `X.Y.Z.devN` (e.g., `0.1.0.dev123`)
+  - Published automatically to TestPyPI on every commit
+  - `N` = GitHub Actions run number (monotonically increasing)
+  - Base version (`X.Y.Z`) read from `NEXT_VERSION` file
+
+- **Release Candidates** (tags `vX.Y.ZrcN`): `X.Y.ZrcN` (e.g., `1.0.0rc1`)
+  - Published to PyPI as pre-release
+  - GitHub Release marked as pre-release
+
+- **Stable Releases** (tags `vX.Y.Z`): `X.Y.Z` (e.g., `1.0.0`)
+  - Published to PyPI as stable
+  - GitHub Release (normal)
+
+### Installing Versions
+
+```bash
+# Install latest stable from PyPI
+pip install rag2f-openai-embedder
+
+# Install specific stable version
+pip install rag2f-openai-embedder==1.0.0
+
+# Install specific release candidate
+pip install rag2f-openai-embedder==1.0.0rc1
+
+# Install specific dev build from TestPyPI
+pip install --index-url https://test.pypi.org/simple/ \
+            --extra-index-url https://pypi.org/simple/ \
+            rag2f-openai-embedder==0.1.0.dev123
+```
+
+### Version Information at Runtime
+
+Every published package includes commit information:
+
+```python
+from rag2f_openai_embedder._version import __version__, __commit__, __distance__
+
+print(f"Version: {__version__}")    # e.g., "1.0.0" or "0.1.0.dev123"
+print(f"Commit: {__commit__}")      # Git commit hash
+print(f"Distance: {__distance__}")  # Commits since last tag
+```
+
+### For Maintainers
+
+#### Publishing Dev Builds
+- Push to `dev` branch → automatic publish to TestPyPI
+- Version: `<NEXT_VERSION>.dev<run_number>`
+
+#### Creating Releases
+
+**Release Candidate:**
+```bash
+git tag v1.0.0rc1
+git push origin v1.0.0rc1
+```
+
+**Stable Release:**
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+#### Updating Next Version
+Edit the `NEXT_VERSION` file and commit to `dev`:
+```bash
+echo "1.1.0" > NEXT_VERSION
+git add NEXT_VERSION
+git commit -m "Bump next version to 1.1.0"
+git push origin dev
+```
+
+### CI/CD Workflows
+
+- **`.github/workflows/ci-dev-testpypi.yml`**: Validates structure, builds, and publishes dev versions to TestPyPI
+- **`.github/workflows/release-tags.yml`**: Builds from tags, publishes to PyPI, creates GitHub Releases

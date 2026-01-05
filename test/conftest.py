@@ -12,12 +12,10 @@ sys.path.insert(0, ROOT)
 #if WORKSPACE_ROOT not in sys.path:
 #	sys.path.insert(0, WORKSPACE_ROOT)
 
-from src.plugin_context import reset_plugin_id
 from rag2f.core.rag2f import RAG2F
 import pytest
 import pytest_asyncio
 from rich.traceback import install
-from rag2f.core.morpheus.morpheus import Morpheus
 from rag2f.core.spock.spock import Spock
 
 
@@ -42,5 +40,5 @@ async def rag2f_openai_embedder():
 		"size": 1536
 	}
 	
-	instance = await RAG2F.create(plugins_folder=f"plugins/", config=config, config_path="plugins/test.json")	
+	instance = await RAG2F.create(plugins_folder=f"src/", config=config, config_path="test/test.json")	
 	return instance

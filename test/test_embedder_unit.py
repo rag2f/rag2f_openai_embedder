@@ -17,12 +17,15 @@ import pytest
 from unittest.mock import patch, MagicMock
 
 
+OPENAI_PATCH_TARGET = "rag2f_openai_embedder.embedder.OpenAI"
+
+
 class TestOpenAIEmbedderConfiguration:
     """Test configuration validation - this IS your code."""
     
     def test_missing_required_config_raises_error(self):
         """Verify YOUR validation logic catches missing params."""
-        from src.embedder import OpenAIEmbedder
+        from rag2f_openai_embedder.embedder import OpenAIEmbedder
         
         incomplete_configs = [
             {},  # All missing
@@ -41,7 +44,7 @@ class TestOpenAIEmbedderConfiguration:
     
     def test_invalid_size_type_raises_error(self):
         """Verify YOUR validation catches invalid size type."""
-        from src.embedder import OpenAIEmbedder
+        from rag2f_openai_embedder.embedder import OpenAIEmbedder
         
         config = {
             "api_key": "sk-test-key",
@@ -55,7 +58,7 @@ class TestOpenAIEmbedderConfiguration:
     
     def test_invalid_timeout_type_raises_error(self):
         """Verify YOUR validation catches invalid timeout type."""
-        from src.embedder import OpenAIEmbedder
+        from rag2f_openai_embedder.embedder import OpenAIEmbedder
         
         config = {
             "api_key": "sk-test-key",
@@ -70,7 +73,7 @@ class TestOpenAIEmbedderConfiguration:
     
     def test_invalid_max_retries_type_raises_error(self):
         """Verify YOUR validation catches invalid max_retries type."""
-        from src.embedder import OpenAIEmbedder
+        from rag2f_openai_embedder.embedder import OpenAIEmbedder
         
         config = {
             "api_key": "sk-test-key",
@@ -85,7 +88,7 @@ class TestOpenAIEmbedderConfiguration:
     
     def test_valid_config_initializes_correctly(self):
         """Verify embedder initializes with valid config."""
-        from src.embedder import OpenAIEmbedder
+        from rag2f_openai_embedder.embedder import OpenAIEmbedder
         
         config = {
             "api_key": "sk-test-key",
@@ -93,13 +96,13 @@ class TestOpenAIEmbedderConfiguration:
             "size": 1536
         }
         
-        with patch('src.embedder.OpenAI'):
+        with patch(OPENAI_PATCH_TARGET):
             embedder = OpenAIEmbedder(config)
             assert embedder.size == 1536
     
     def test_size_property_returns_configured_value(self):
         """Verify size property returns what was configured."""
-        from src.embedder import OpenAIEmbedder
+        from rag2f_openai_embedder.embedder import OpenAIEmbedder
         
         for expected_size in [512, 1536, 3072]:
             config = {
@@ -108,13 +111,13 @@ class TestOpenAIEmbedderConfiguration:
                 "size": expected_size
             }
             
-            with patch('src.embedder.OpenAI'):
+            with patch(OPENAI_PATCH_TARGET):
                 embedder = OpenAIEmbedder(config)
                 assert embedder.size == expected_size
     
     def test_default_timeout_and_retries(self):
         """Verify default timeout and max_retries are applied."""
-        from src.embedder import OpenAIEmbedder
+        from rag2f_openai_embedder.embedder import OpenAIEmbedder
         
         config = {
             "api_key": "sk-test-key",
@@ -123,7 +126,7 @@ class TestOpenAIEmbedderConfiguration:
             # No timeout or max_retries specified
         }
         
-        with patch('src.embedder.OpenAI') as MockClient:
+        with patch(OPENAI_PATCH_TARGET) as MockClient:
             embedder = OpenAIEmbedder(config)
             
             # Verify default values were applied to client
@@ -147,7 +150,7 @@ class TestOpenAIEmbedderContract:
     @pytest.fixture
     def mock_client(self):
         """Create a mock OpenAI client."""
-        with patch('src.embedder.OpenAI') as MockClient:
+        with patch(OPENAI_PATCH_TARGET) as MockClient:
             mock_instance = MagicMock()
             mock_response = MagicMock()
             mock_response.data = [MagicMock(embedding=[0.1] * 1536)]
@@ -157,7 +160,7 @@ class TestOpenAIEmbedderContract:
     
     def test_client_initialized_with_correct_params(self, mock_client):
         """Verify OpenAI client receives correct init params."""
-        from src.embedder import OpenAIEmbedder
+        from rag2f_openai_embedder.embedder import OpenAIEmbedder
         
         MockClient, _ = mock_client
         
@@ -180,7 +183,7 @@ class TestOpenAIEmbedderContract:
     
     def test_embedding_create_called_with_correct_params(self, mock_client):
         """Verify embeddings.create() receives correct params."""
-        from src.embedder import OpenAIEmbedder
+        from rag2f_openai_embedder.embedder import OpenAIEmbedder
         
         _, mock_instance = mock_client
         
@@ -201,7 +204,7 @@ class TestOpenAIEmbedderContract:
     
     def test_returns_embedding_as_list(self, mock_client):
         """Verify YOUR code converts embedding to list."""
-        from src.embedder import OpenAIEmbedder
+        from rag2f_openai_embedder.embedder import OpenAIEmbedder
         
         _, mock_instance = mock_client
         
@@ -224,7 +227,7 @@ class TestOpenAIEmbedderContract:
     
     def test_multiple_embed_calls(self, mock_client):
         """Verify embedder can be called multiple times."""
-        from src.embedder import OpenAIEmbedder
+        from rag2f_openai_embedder.embedder import OpenAIEmbedder
         
         _, mock_instance = mock_client
         
@@ -250,9 +253,9 @@ class TestOpenAIEmbedderEdgeCases:
     
     def test_empty_string_input(self):
         """Verify empty string is passed through (not rejected by YOUR code)."""
-        from src.embedder import OpenAIEmbedder
+        from rag2f_openai_embedder.embedder import OpenAIEmbedder
         
-        with patch('src.embedder.OpenAI') as MockClient:
+        with patch(OPENAI_PATCH_TARGET) as MockClient:
             mock_instance = MagicMock()
             mock_instance.embeddings.create.return_value.data = [
                 MagicMock(embedding=[0.0] * 1536)
@@ -276,9 +279,9 @@ class TestOpenAIEmbedderEdgeCases:
     
     def test_long_text_input(self):
         """Verify long text is passed through (SDK will handle limits)."""
-        from src.embedder import OpenAIEmbedder
+        from rag2f_openai_embedder.embedder import OpenAIEmbedder
         
-        with patch('src.embedder.OpenAI') as MockClient:
+        with patch(OPENAI_PATCH_TARGET) as MockClient:
             mock_instance = MagicMock()
             mock_instance.embeddings.create.return_value.data = [
                 MagicMock(embedding=[0.1] * 1536)
@@ -304,9 +307,9 @@ class TestOpenAIEmbedderEdgeCases:
     
     def test_sdk_exception_propagates(self):
         """Verify SDK exceptions bubble up (YOUR code re-raises)."""
-        from src.embedder import OpenAIEmbedder
+        from rag2f_openai_embedder.embedder import OpenAIEmbedder
         
-        with patch('src.embedder.OpenAI') as MockClient:
+        with patch(OPENAI_PATCH_TARGET) as MockClient:
             mock_instance = MagicMock()
             mock_instance.embeddings.create.side_effect = Exception("API Error")
             MockClient.return_value = mock_instance
@@ -326,9 +329,9 @@ class TestOpenAIEmbedderEdgeCases:
     
     def test_special_characters_in_input(self):
         """Verify special characters are passed through."""
-        from src.embedder import OpenAIEmbedder
+        from rag2f_openai_embedder.embedder import OpenAIEmbedder
         
-        with patch('src.embedder.OpenAI') as MockClient:
+        with patch(OPENAI_PATCH_TARGET) as MockClient:
             mock_instance = MagicMock()
             mock_instance.embeddings.create.return_value.data = [
                 MagicMock(embedding=[0.1] * 1536)
@@ -378,7 +381,7 @@ class TestOpenAIEmbedderHTTPIntegration:
         
         This catches: SDK version incompatibilities, breaking changes.
         """
-        from src.embedder import OpenAIEmbedder
+        from rag2f_openai_embedder.embedder import OpenAIEmbedder
         
         config = {
             "api_key": "sk-test-key",
