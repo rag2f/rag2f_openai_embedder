@@ -161,7 +161,11 @@ jobs:
       - name: Build package
         run: |
           echo "Building version: ${{ steps.dev_version.outputs.version }}"
-          python -m build
+          # Build wheel directly from git repo to preserve commit info
+          # Use --no-isolation to access SETUPTOOLS_SCM_PRETEND_VERSION_FOR_* env var
+          python -m build --wheel --no-isolation
+          # Build sdist for source distribution
+          python -m build --sdist --no-isolation
       
       - name: Verify build contents
         run: |
