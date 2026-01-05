@@ -71,7 +71,7 @@ echo "  ✓ local_scheme validated"
 # Install build dependencies
 echo ""
 echo "📦 Installing build dependencies..."
-pip install -q --upgrade build setuptools-scm[toml]>=8.0 wheel
+pip install -q --upgrade build "setuptools-scm[toml]>=8.0" wheel
 
 # Build
 echo ""

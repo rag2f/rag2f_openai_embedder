@@ -18,8 +18,6 @@ files_to_check=(
     "NEXT_VERSION"
     ".github/workflows/ci-dev-testpypi.yml"
     ".github/workflows/release-tags.yml"
-    "RELEASE_GUIDE.md"
-    "IMPLEMENTATION_SUMMARY.md"
 )
 
 for file in "${files_to_check[@]}"; do
