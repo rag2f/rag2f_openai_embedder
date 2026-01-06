@@ -23,7 +23,7 @@
       ]
     }
   },
-  "postCreateCommand": "pip install uv && uv pip install --system -e './rag2f' && uv pip install --system -e '.[dev]'",
+  "postCreateCommand": "pip install uv && pip install -e . --extra-index-url https://test.pypi.org/simple/ && uv pip install --system -e '.[dev]'",
   "remoteUser": "vscode",
   "containerEnv": {
     "PYTHONPATH": "/workspaces/rag2f/src",
