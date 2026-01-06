@@ -28,10 +28,10 @@ class OpenAIEmbedder:
     2. Environment variables with prefix RAG2F__PLUGINS__<PLUGIN_ID>__
     
     Example environment variables:
-      RAG2F__PLUGINS__OPENAI_EMBEDDER__API_KEY=sk-xxx
-      RAG2F__PLUGINS__OPENAI_EMBEDDER__MODEL=text-embedding-3-small
-      RAG2F__PLUGINS__OPENAI_EMBEDDER__SIZE=1536
-      RAG2F__PLUGINS__OPENAI_EMBEDDER__BASE_URL=http://localhost:8000/v1
+      RAG2F__PLUGINS__RAG2F_OPENAI_EMBEDDER__API_KEY=sk-xxx
+      RAG2F__PLUGINS__RAG2F_OPENAI_EMBEDDER__MODEL=text-embedding-3-small
+      RAG2F__PLUGINS__RAG2F_OPENAI_EMBEDDER__SIZE=1536
+      RAG2F__PLUGINS__RAG2F_OPENAI_EMBEDDER__BASE_URL=http://localhost:8000/v1
     """
 
     def __init__(self, config: dict):

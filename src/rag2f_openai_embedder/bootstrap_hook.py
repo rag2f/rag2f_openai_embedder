@@ -32,9 +32,9 @@ def bootstrap_openai_embedder(embedders_registry, rag2f):
     }
     
     Example environment variables:
-    RAG2F__PLUGINS__OPENAI_EMBEDDER__API_KEY=sk-...
-    RAG2F__PLUGINS__OPENAI_EMBEDDER__MODEL=text-embedding-3-small
-    RAG2F__PLUGINS__OPENAI_EMBEDDER__SIZE=1536
+    RAG2F__PLUGINS__RAG2F_OPENAI_EMBEDDER__API_KEY=sk-...
+    RAG2F__PLUGINS__RAG2F_OPENAI_EMBEDDER__MODEL=text-embedding-3-small
+    RAG2F__PLUGINS__RAG2F_OPENAI_EMBEDDER__SIZE=1536
     
     Args:
         embedders_registry: Dictionary to populate with embedders
