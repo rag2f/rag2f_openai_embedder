@@ -1,54 +1,54 @@
 # RAG2F OpenAI Embedder Plugin
 
-Plugin per l'integrazione di OpenAI embeddings in RAG2F.
 
-## Struttura del Plugin
+Plugin for integrating OpenAI embeddings into RAG2F.
+
+## Plugin Structure
 
 ```
 rag2f_openai_embedder/
-├── __init__.py                    # Entry point del plugin
-├── plugin.json                    # Metadata del plugin
-├── settings.json                  # Settings (vuoto)
-├── pyproject.toml                 # Configurazione package Python
-├── config.json.example            # Esempio di configurazione
-├── CONFIG.md                      # Documentazione configurazione
+├── __init__.py                    # Plugin entry point
+├── plugin.json                    # Plugin metadata
+├── settings.json                  # Settings (empty)
+├── pyproject.toml                 # Python package configuration
+├── config.json.example            # Configuration example
+├── CONFIG.md                      # Configuration documentation
 ├── src/
-│   ├── __init__.py               # Package src
-│   ├── plugin_context.py         # Gestione plugin_id thread-safe
-│   ├── embedder.py               # Implementazione OpenAIEmbedder
-│   └── bootstrap_hook.py         # Hook di bootstrap
+│   ├── __init__.py               # src package
+│   ├── plugin_context.py         # Thread-safe plugin_id management
+│   ├── embedder.py               # OpenAIEmbedder implementation
+│   └── bootstrap_hook.py         # Bootstrap hook
 └── test/
-    ├── conftest.py               # Configurazione pytest
-    ├── test_embedder_unit.py     # Unit test embedder
-    └── test_bootstrap_hook.py    # Test bootstrap hook
+  ├── conftest.py               # pytest configuration
+  ├── test_embedder_unit.py     # Embedder unit test
+  └── test_bootstrap_hook.py    # Bootstrap hook test
 ```
 
-## Parametri di Configurazione
+## Configuration Parameters
 
-### Obbligatori
-- **api_key**: Chiave API OpenAI (es. `"sk-..."`)
-- **model**: Nome del modello di embedding
-  - `"text-embedding-3-small"` (1536 dim, economico)
-  - `"text-embedding-3-large"` (3072 dim, alta qualità)
+### Required
+- **api_key**: OpenAI API key (e.g. `"sk-..."`)
+- **model**: Embedding model name
+  - `"text-embedding-3-small"` (1536 dim, economical)
+  - `"text-embedding-3-large"` (3072 dim, high quality)
   - `"text-embedding-ada-002"` (1536 dim, legacy)
-- **size**: Dimensione del vettore (1536 o 3072)
+- **size**: Vector size (1536 or 3072)
 
-### Opzionali
-- **timeout**: Timeout richieste in secondi (default: 30.0)
-- **max_retries**: Numero massimo di retry (default: 2)
+### Optional
+- **timeout**: Request timeout in seconds (default: 30.0)
+- **max_retries**: Maximum number of retries (default: 2)
 
-## Differenze rispetto ad Azure OpenAI
+## Differences from Azure OpenAI
 
-Il plugin OpenAI standard differisce da Azure OpenAI per:
+The standard OpenAI plugin differs from Azure OpenAI in:
 
-1. **NON richiede** `azure_endpoint` (usa endpoint pubblico OpenAI)
-2. **NON richiede** `api_version` (usa automaticamente l'ultima versione)
-3. **NON richiede** `deployment` (usa direttamente `model`)
-4. Utilizza la classe `OpenAI` invece di `AzureOpenAI`
+1. **Does NOT require** `azure_endpoint` (uses OpenAI public endpoint)
+2. **Does NOT require** `api_version` (automatically uses the latest version)
+3. **Does NOT require** `deployment` (uses `model` directly)
+4. Uses the `OpenAI` class instead of `AzureOpenAI`
+## Configuration
 
-## Configurazione
-
-### Tramite JSON (config.json)
+### Using JSON (config.json)
 
 ```json
 {

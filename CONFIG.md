@@ -1,13 +1,14 @@
 # OpenAI Embedder Configuration (Spock)
 
-Questo plugin ora legge la configurazione tramite il sistema centralizzato **Spock** di RAG2F.
-La configurazione del plugin deve essere inserita nel file di configurazione principale (o tramite environment variables) sotto il nodo `plugins.<plugin_id>`.
 
-Nota: le API in questo repository si aspettano che il plugin richiami la configurazione usando il `plugin_id` (es. `openai_embedder`) tramite `rag2f.spock.get_plugin_config(plugin_id)`.
+This plugin now reads its configuration through the centralized **Spock** system of RAG2F.
+The plugin configuration must be placed in the main configuration file (or via environment variables) under the `plugins.<plugin_id>` node.
 
-## Dove mettere la configurazione
+Note: The APIs in this repository expect the plugin to retrieve the configuration using the `plugin_id` (e.g. `openai_embedder`) via `rag2f.spock.get_plugin_config(plugin_id)`.
 
-Nel file principale di configurazione (es. `config.json`) la sezione plugin deve avere questa struttura:
+## Where to put the configuration
+
+In the main configuration file (e.g. `config.json`), the plugin section should have this structure:
 
 ```json
 {
@@ -23,13 +24,13 @@ Nel file principale di configurazione (es. `config.json`) la sezione plugin deve
 }
 ```
 
-In questo esempio il `plugin_id` è `openai_embedder` e Spock caricherà la configurazione quando il plugin la richiederà.
+In this example, the `plugin_id` is `openai_embedder` and Spock will load the configuration when the plugin requests it.
 
-## Variabili d'ambiente (Spock)
+## Environment variables (Spock)
 
-Spock supporta anche le variabili d'ambiente. Il formato è basato su prefissi con doppio underscore per rappresentare la gerarchia.
+Spock also supports environment variables. The format is based on double underscore prefixes to represent the hierarchy.
 
-Esempi per impostare la configurazione del plugin via ENV:
+Examples to set the plugin configuration via ENV:
 
 ```bash
 export RAG2F__PLUGINS__OPENAI_EMBEDDER__API_KEY="sk-your-api-key"

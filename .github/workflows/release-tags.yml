@@ -23,7 +23,7 @@ jobs:
           if git merge-base --is-ancestor "$TAG_COMMIT" origin/main; then
             echo "✅ Tag commit $TAG_COMMIT is on main"
           else
-            echo "❌ ERROR: Il tag non punta a un commit presente su main. Release bloccata."
+            echo "❌ ERROR: The tag does not point to a commit present on main. Release blocked."
             exit 1
           fi
           echo "::endgroup::"
