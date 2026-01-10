@@ -54,9 +54,13 @@ def get_plugin_id(rag2f=None) -> str:
         
         # Compute plugin_id using self_plugin_id and cache it
         logger.debug("Plugin ID not in context, computing from rag2f.morpheus.self_plugin_id()")
-        pid = rag2f.morpheus.self_plugin_id()
+        try:
+            pid = rag2f.morpheus.self_plugin_id()
+            
+        except Exception as e:
+            logger.error(f"Error computing plugin_id from rag2f: {e}")
+            raise RuntimeError("Failed to compute plugin_id from rag2f.morpheus.self_plugin_id()") from e
         set_plugin_id(pid)
-    
     return pid
 
 

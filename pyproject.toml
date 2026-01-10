@@ -13,7 +13,7 @@ authors = [
     {name = "RAG2F Team"}
 ]
 dependencies = [
-    "rag2f>=0.1.0dev5",
+    "rag2f>=0.1.0dev20",
     "openai==2.8.0",
 ]
 
