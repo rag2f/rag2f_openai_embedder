@@ -1,5 +1,5 @@
 #!/bin/bash
-# Local build and verification script for rag2f-openai-embedder
+# Local build and verification script 
 
 set -e
 
@@ -43,6 +43,25 @@ fi
 
 if [ "$package_found" = false ]; then
     echo -e "${RED}❌ ERROR: No importable package found in /src${NC}"
+    exit 1
+fi
+
+# Validate __init__.py in all packages
+echo ""
+echo "✅ Validating __init__.py in all packages..."
+
+missing_init=()
+while IFS= read -r -d '' dir; do
+    if [ ! -f "$dir/__init__.py" ]; then
+        missing_init+=("$dir")
+    else
+        echo "  ✓ $(echo "$dir" | sed 's|^src/||') has __init__.py"
+    fi
+done < <(find src -type d -exec sh -c '[ -n "$(find "$1" -maxdepth 1 -name "*.py" -print -quit)" ]' _ {} \; -print0)
+
+if [ ${#missing_init[@]} -gt 0 ]; then
+    echo -e "${RED}❌ ERROR: The following package directories are missing __init__.py:${NC}"
+    printf '  - %s\n' "${missing_init[@]}"
     exit 1
 fi
 

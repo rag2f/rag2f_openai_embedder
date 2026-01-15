@@ -9,29 +9,33 @@ permissions:
   contents: write  # For creating GitHub releases
   id-token: write  # For OIDC trusted publishing to PyPI
 
+env:
+  PYTHON_VERSION: "3.12"
+  MAIN_BRANCH: "main"
+  PACKAGE_NAME: "rag2f-openai-embedder"
+  IMPORT_NAME: "rag2f_openai_embedder"
+
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - name: Check tag commit is on main
-        run: |
-          echo "::group::Checking if tag commit is on main"
-          TAG_COMMIT=$(git rev-parse "$GITHUB_SHA")
-          # Fetch main branch
-          git fetch origin main:refs/remotes/origin/main --depth=100
-          # Check if the tag commit is contained in main
-          if git merge-base --is-ancestor "$TAG_COMMIT" origin/main; then
-            echo "✅ Tag commit $TAG_COMMIT is on main"
-          else
-            echo "❌ ERROR: The tag does not point to a commit present on main. Release blocked."
-            exit 1
-          fi
-          echo "::endgroup::"
-    
       - name: Checkout repository with full history
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Required for setuptools-scm
+
+      - name: Check tag commit is on main
+        run: |
+          echo "::group::Checking if tag commit is on ${MAIN_BRANCH}"
+          TAG_COMMIT=$(git rev-parse "$GITHUB_SHA")
+          git fetch origin "${MAIN_BRANCH}":"refs/remotes/origin/${MAIN_BRANCH}" --depth=100
+          if git merge-base --is-ancestor "$TAG_COMMIT" "origin/${MAIN_BRANCH}"; then
+            echo "✅ Tag commit $TAG_COMMIT is on ${MAIN_BRANCH}"
+          else
+            echo "❌ ERROR: The tag does not point to a commit present on ${MAIN_BRANCH}. Release blocked."
+            exit 1
+          fi
+          echo "::endgroup::"
       
       - name: Determine release type
         id: release_type
@@ -51,12 +55,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "${{ env.PYTHON_VERSION }}"
       
       - name: Install build tools
         run: |
           python -m pip install --upgrade pip
-          pip install build setuptools-scm[toml]>=8.0 wheel
+          pip install build "setuptools-scm[toml]>=8.0" wheel
       
       - name: Validate src/ structure
         run: |
@@ -118,6 +122,12 @@ jobs:
             exit 1
           fi
           echo "✅ dynamic version configured"
+
+          if ! grep -q "^name[[:space:]]*=[[:space:]]*\"${PACKAGE_NAME}\"" pyproject.toml; then
+            echo "❌ ERROR: pyproject.toml must have project.name = \"${PACKAGE_NAME}\""
+            exit 1
+          fi
+          echo "✅ project.name matches expected package name"
           
           if ! grep -q 'setuptools-scm' pyproject.toml; then
             echo "❌ ERROR: setuptools-scm not in build-system"
@@ -130,6 +140,12 @@ jobs:
             exit 1
           fi
           echo "✅ local_scheme validated"
+
+          if ! grep -q "write_to.*=.*\"src/${IMPORT_NAME}/_version.py\"" pyproject.toml; then
+            echo "❌ ERROR: [tool.setuptools_scm].write_to must be \"src/${IMPORT_NAME}/_version.py\""
+            exit 1
+          fi
+          echo "✅ write_to configured"
           
           if ! grep -q 'where.*=.*\[.*"src".*\]' pyproject.toml; then
             echo "❌ ERROR: src layout not configured"
@@ -168,6 +184,12 @@ jobs:
             echo "Contents of $whl:"
             unzip -l "$whl" | head -50
           done
+
+          WHEEL_FILE=$(ls dist/*.whl | head -1)
+          if ! python -m zipfile -l "$WHEEL_FILE" | grep -q "${IMPORT_NAME}/__init__.py"; then
+            echo "❌ ERROR: ${IMPORT_NAME} package not found in wheel"
+            exit 1
+          fi
           
           echo "::endgroup::"
       
@@ -199,7 +221,7 @@ jobs:
             ### Installation
             
             ```bash
-            pip install rag2f-openai-embedder==${{ steps.version.outputs.version }}
+            pip install ${{ env.PACKAGE_NAME }}==${{ steps.version.outputs.version }}
             ```
             
             ### Version Information
@@ -207,7 +229,7 @@ jobs:
             To check the installed version and commit:
             
             ```python
-            from rag2f_openai_embedder._version import __version__, __commit__, __distance__
+            from ${{ env.IMPORT_NAME }}._version import __version__, __commit__, __distance__
             print(f"Version: {__version__}")
             print(f"Commit: {__commit__}")
             print(f"Distance from tag: {__distance__}")
@@ -240,29 +262,32 @@ jobs:
           source test-env/bin/activate
           
           # Install from PyPI
-          pip install rag2f-openai-embedder==${{ steps.version.outputs.version }}
+          pip install "${PACKAGE_NAME}==${{ steps.version.outputs.version }}"
           
           # Verify installation
-          python -c "
-          import rag2f_openai_embedder
-          print(f'✅ Successfully imported rag2f_openai_embedder')
+          EXPECTED_VERSION="${{ steps.version.outputs.version }}"
+          export EXPECTED_VERSION
+          python - <<'PY'
+          import importlib
+          import os
 
-          try:
-              from rag2f_openai_embedder._version import __version__, __commit__, __distance__
-              print(f'Version: {__version__}')
-              print(f'Commit: {__commit__}')
-              print(f'Distance: {__distance__}')
-              
-              # Verify version matches tag
-              expected = '${{ steps.version.outputs.version }}'
-              if __version__ != expected:
-                  print(f'❌ Version mismatch! Expected {expected}, got {__version__}')
-                  exit(1)
-              print(f'✅ Version matches tag')
-          except ImportError as e:
-              print(f'❌ Could not import version info: {e}')
-              exit(1)
-          "
+          import_name = os.environ["IMPORT_NAME"]
+          expected = os.environ["EXPECTED_VERSION"]
+
+          module = importlib.import_module(import_name)
+          print(f"✅ Successfully imported {import_name}")
+
+          version = getattr(module, "__version__", None)
+          commit = getattr(module, "__commit__", None)
+          distance = getattr(module, "__distance__", None)
+          print(f"Version: {version}")
+          print(f"Commit: {commit}")
+          print(f"Distance: {distance}")
+
+          if version != expected:
+              raise SystemExit(f"❌ Version mismatch! Expected {expected}, got {version}")
+          print("✅ Version matches tag")
+          PY
           
           deactivate
           echo "::endgroup::"

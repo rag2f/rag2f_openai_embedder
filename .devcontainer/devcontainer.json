@@ -1,6 +1,9 @@
 {
-  "name": "rag2f Devcontainer",
+  "name": "rag2f_openai_embedder Devcontainer",
   "image": "python:3.12",
+  "mounts": [
+    "source=rag2f_openai_embedder-venv,target=/workspaces/rag2f_openai_embedder/.venv,type=volume"
+  ],
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
       "version": "latest"
@@ -17,16 +20,30 @@
     "vscode": {
       "extensions": [
         "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
         "ms-azuretools.vscode-docker",
         "usernamehw.errorlens",
-        "ryanluker.vscode-coverage-gutters"
-      ]
+        "gruntfuggly.todo-tree"
+      ],
+      "settings": {
+        "ruff.configurationPreference": "filesystemFirst",
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.organizeImports.ruff": "always",
+            "source.fixAll.ruff": "explicit"
+          }
+        }
+      }
     }
   },
-  "postCreateCommand": "pip install uv && pip install -e . --extra-index-url https://test.pypi.org/simple/ && uv pip install --system -e '.[dev]'",
+  "postCreateCommand": "(sudo chown -R vscode:vscode /workspaces/rag2f_openai_embedder/.venv 2>/dev/null || true) && bash scripts/bootstrap-venv.sh",
+  "postStartCommand": ". .venv/bin/activate && pip install uv && uv pip install -e . --index-url https://pypi.org/simple/ --extra-index-url https://test.pypi.org/simple/ --index-strategy unsafe-best-match --no-build-isolation && pre-commit install",
   "remoteUser": "vscode",
   "containerEnv": {
-    "PYTHONPATH": "/workspaces/rag2f/src",
+    "PYTHONPATH": "/workspaces/rag2f_openai_embedder/src",
     "PYTEST_RICH": "1"
   }
 }

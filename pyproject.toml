@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel", "setuptools-scm>=8.0"]
+requires = ["setuptools>=61.0", "wheel", "setuptools-scm[toml]>=8.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -10,15 +10,21 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = {text = "GPL-3.0"}
 authors = [
-    {name = "RAG2F Team"}
+    {name = "Dario Chini", email = "dariochini@gmail.com"}
+]
+classifiers = [
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-    "rag2f>=0.1.0dev20",
+    "rag2f>=0.0.9dev01,<0.1.0",
     "openai==2.8.0",
 ]
 
 [project.optional-dependencies]
 dev = [
+    "pre-commit==4.5.1",
+    "ruff==0.14.11",
     "pytest",
     "pytest-asyncio",
     "rich",
@@ -33,13 +39,14 @@ dev = [
 
 [project.urls]
 Homepage = "https://github.com/rag2f/rag2f"
-Repository = "https://github.com/rag2f/rag2f"
+Repository = "https://github.com/rag2f"
 
 [project.entry-points."rag2f.plugins"]
 rag2f_openai_embedder = "rag2f_openai_embedder:get_plugin_path"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+exclude = ["tests*", "scripts*"]
 
 [tool.setuptools.package-dir]
 "" = "src"
@@ -83,3 +90,51 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-s -vv -rA --color=yes --maxfail=3"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 99
+indent-width = 4
+# src-layout hint: treat imports from src/ as first-party
+src = ["src"]
+
+[tool.ruff.lint]
+# Lint set: useful defaults + stronger security
+# E/F: pycodestyle+pyflakes (errors & common issues)
+# I: import sorting (isort-like)
+# UP: pyupgrade (modernize for Python 3.12)
+# B: bugbear (bug-prone patterns)
+# SIM: simplify (safe simplifications)
+# S: security rules (bandit-like)
+# D: docstring rules (pydocstyle) 
+# W: warnings (pycodestyle)
+select = ["E", "F", "I", "UP", "B", "SIM", "S"]
+#select = ["E", "F", "I", "UP", "B", "SIM", "S", "D", "W"]
+
+# Avoid line-length lint noise; formatter enforces best-effort wrapping.
+ignore = ["E501"]
+
+fixable = ["ALL"]
+unfixable = []
+
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.per-file-ignores]
+# In tests, assert statements are expected.
+# Repository uses /test; also include /tests in case it exists.
+"test/**.py" = ["S101"]
+"tests/**.py" = ["S101"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+
+[tool.ruff.lint.pycodestyle]
+max-doc-length = 99
+
