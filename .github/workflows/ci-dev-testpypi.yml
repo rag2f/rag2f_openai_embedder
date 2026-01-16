@@ -16,7 +16,7 @@ env:
   PYTHON_VERSION: "3.12"
   PACKAGE_NAME: "rag2f-openai-embedder"
   IMPORT_NAME: "rag2f_openai_embedder"
-  RUFF_TARGETS: "src test"
+  RUFF_TARGETS: "src tests"
 
 jobs:
   ruff:
