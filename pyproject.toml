@@ -84,7 +84,7 @@ __dirty__ = {scm_version.dirty!r}
 '''
 
 [tool.pytest.ini_options]
-testpaths = ["test"]
+testpaths = ["tests"]
 norecursedirs = ["rag2f"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
