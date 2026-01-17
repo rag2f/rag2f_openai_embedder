@@ -17,7 +17,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-    "rag2f>=0.0.9dev01,<0.1.0",
+    "rag2f>=0.0,<0.6",
     "openai==2.8.0",
 ]
 
@@ -97,6 +97,8 @@ line-length = 99
 indent-width = 4
 # src-layout hint: treat imports from src/ as first-party
 src = ["src"]
+# Exclude auto-generated version files (setuptools-scm)
+exclude = ["*/_version.py"]
 
 [tool.ruff.lint]
 # Lint set: useful defaults + stronger security
