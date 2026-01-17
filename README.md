@@ -1,5 +1,9 @@
 # RAG2F OpenAI Embedder Plugin
 
+Plugin for integrating OpenAI embeddings into RAG2F.
+
+## Plugin Structure
+
 
 Plugin for integrating OpenAI embeddings into RAG2F.
 
