@@ -185,6 +185,48 @@ jobs:
           # Force setuptools-scm to use the tag-derived version even if the tag format is unusual.
           echo "SETUPTOOLS_SCM_PRETEND_VERSION_FOR_RAG2F=$VERSION" >> $GITHUB_ENV
 
+      - name: Update plugin.json version (no commit, no fail)
+        shell: bash
+        env:
+          PLUGIN_VERSION: ${{ steps.dev_version.outputs.version }}
+        run: |
+          echo "::group::Updating plugin.json version"
+          if [ ! -f "plugin.json" ]; then
+            echo "⚠️  plugin.json not found, skipping."
+            echo "::endgroup::"
+            exit 0
+          fi
+
+          python - <<'PY' || true
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path("plugin.json")
+          version = os.environ.get("PLUGIN_VERSION")
+
+          if not version:
+            print("⚠️  PLUGIN_VERSION not set, skipping.")
+            raise SystemExit(0)
+
+          try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+          except Exception as e:
+            print(f"⚠️  Cannot parse plugin.json as JSON, skipping. Error: {e}")
+            raise SystemExit(0)
+
+          old = data.get("version")
+          data["version"] = version
+
+          # Pretty write (keeps file valid JSON)
+          path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+          print(f"✅ plugin.json version updated: {old} -> {version}")
+          PY
+
+          echo "Current plugin.json:"
+          cat plugin.json || true
+          echo "::endgroup::"
+
       - name: Build package
         run: |
           echo "Building release version: ${{ steps.version.outputs.version }}"
